@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="/styles.css">
+  <style>
+    /* Additional CSS styles for clock and day display */
+    #time-box {
+      background-color: black;
+      color: white;
+      padding: 10px;
+      border-radius: 5px;
+      margin-top: 20px;
+    }
+
+    #time-clock {
+      font-size: 28px;
+      font-weight: bold;
+      color: white;
+    }
+
+    #day {
+      font-size: 20px;
+      color: white;
+    }
+
+    /* CSS styles for authorization form */
+    #authorization-box {
+      margin-top: 20px;
+    }
+
+    #authorization-box label {
+      display: block;
+      margin-bottom: 10px;
+      color: white;
+      font-weight: bold;
+    }
+
+    #authorization-box input[type="password"] {
+      padding: 8px;
+      font-size: 16px;
+      width: 200px;
+    }
+
+    #authorization-box button {
+      padding: 8px 20px;
+      font-size: 16px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+
+    /* CSS styles for container */
+    .container {
+      background-color: black;
+      padding: 20px;
+      border-radius: 5px;
+      text-align: center;
+    }
+
+    /* CSS styles for response */
+    .response {
+      color: white;
+      margin-top: 10px;
+    }
+  </style>
+  <title>GIDEON</title>
+</head>
+<body>
+  <div class="container">
+    <h1 style="color: white;">GIDEON</h1>
+    <div id="authorization-box">
+      <label for="authorization">Authorization Code:</label>
+      <input type="password" id="authorization" required>
+      <button id="authorize">Authorize</button>
+    </div>
+    <div id="chat-form-container">
+      <form id="chat-form" action="/chat" method="POST">
+        <input type="hidden" id="authorization-input" name="authorization" value="">
+        <input type="text" name="message" placeholder="Type your message here" required>
+        <input type="submit" value="Send">
+      </form>
+      <div class="response"></div>
+    </div>
+    <div id="time-box">
+      <div id="time-clock"></div>
+      <div id="day"></div>
+    </div>
+  </div>
+
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script>
+    $(document).ready(function () {
+      // Hide the chat form and time display initially
+      $('#chat-form-container').hide();
+      $('#time-box').hide();
+
+      // Function to display the welcome message
+      function displayWelcomeMessage() {
+        // Show the chat form and time display
+        $('#chat-form-container').show();
+        $('#time-box').show();
+
+        // Hide the authorization box
+        $('#authorization-box').hide();
+      }
+
+      // Handle authorization
+      $('#authorize').click(function () {
+        const authorizationCode = $('#authorization').val();
+
+        // Check authorization code
+        if (authorizationCode === 'dipxsy') {
+          $('#authorization-input').val('dipxsy');
+
+          // Display the welcome message
+          displayWelcomeMessage();
+        } else {
+          $('.response').html('<p>Access Denied</p>');
+          $('#authorization-input').val('');
+
+          // Clear the input field
+          $('input[name="message"]').val('');
+
+          // Hide the chat form and time display
+          $('#chat-form-container').hide();
+          $('#time-box').hide();
+        }
+      });
+
+      // Handle form submission
+      $('#chat-form').submit(function (e) {
+        e.preventDefault();
+        var message = $('input[name="message"]').val();
+
+        // Disable the input and submit button
+        $('input[name="message"]').prop('disabled', true);
+        $('input[type="submit"]').prop('disabled', true);
+
+        // Show the "Processing..." message
+        $('.response').html('<p>Processing...</p>');
+
+        // Make an AJAX request to the server
+        $.ajax({
+          type: 'POST',
+          url: '/chat',
+          data: { message: message, authorization: $('#authorization-input').val() },
+          success: function (response) {
+            // Display the response from the server
+            $('.response').html('<p>' + response + '</p>');
+
+            // Clear the input field
+            $('input[name="message"]').val('');
+
+            // Enable the input and submit button
+            $('input[name="message"]').prop('disabled', false);
+            $('input[type="submit"]').prop('disabled', false);
+          },
+          error: function (error) {
+            console.error('Error:', error.responseText);
+
+            // Display an error message
+            $('.response').html('<p>An error occurred</p>');
+
+            // Enable the input and submit button
+            $('input[name="message"]').prop('disabled', false);
+            $('input[type="submit"]').prop('disabled', false);
+          }
+        });
+      });
+
+      // Update the clock and day every second
+      function updateClock() {
+        const currentTime = new Date().toLocaleTimeString('en-US', { hour12: true });
+        const currentDay = new Date().toLocaleDateString('en-US', { weekday: 'long' });
+
+        $('#time-clock').html(currentTime);
+        $('#day').html(currentDay);
+      }
+
+      setInterval(updateClock, 1000);
+    });
+
+    // Submit authorization form on Enter key press
+    $('#authorization').keypress(function (e) {
+      if (e.which === 13) {
+        e.preventDefault();
+        $('#authorize').click();
+      }
+    });
+  </script>
+</body>
+</html>
